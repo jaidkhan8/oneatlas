@@ -1,0 +1,111 @@
+// OneAtlas — Prisma schema (PostgreSQL)
+// All application data is managed through this database and the Next.js API
+// routes. Nothing is hardcoded in the frontend.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lab {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  website      String?
+  description  String?
+  foundedYear  Int?
+  headquarters String?
+  /// "company" | "research-lab"
+  type         String   @default("company")
+  models       Model[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Provider {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String          @unique
+  website     String?
+  description String?
+  /// "api" | "cloud" | "aggregator" | "weights"
+  type        String          @default("api")
+  models      ModelProvider[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model Model {
+  id               String           @id @default(cuid())
+  name             String
+  slug             String           @unique
+  labId            String
+  lab              Lab              @relation(fields: [labId], references: [id])
+  /// "chat" | "reasoning" | "multimodal" | "embedding" | "image" | "audio" | "code"
+  modelType        String           @default("chat")
+  description      String?
+  contextWindow    Int?
+  /// USD per 1M input tokens (public list price, Nov 2026). Null = not published.
+  inputPricePer1M  Float?
+  /// USD per 1M output tokens (public list price, Nov 2026). Null = not published.
+  outputPricePer1M Float?
+  releaseDate      DateTime?
+  /// e.g. ["text", "image", "audio"]
+  modalities       String[]
+  /// e.g. ["reasoning", "tool-use", "vision", "multilingual"]
+  capabilities     String[]
+  openWeights      Boolean          @default(false)
+  license          String?
+  /// "active" | "deprecated" | "legacy"
+  status           String           @default("active")
+  website          String?
+  providers        ModelProvider[]
+  benchmarks       ModelBenchmark[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([labId])
+  @@index([modelType])
+  @@index([status])
+}
+
+model ModelProvider {
+  id         String   @id @default(cuid())
+  modelId    String
+  model      Model    @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  note       String?
+
+  @@unique([modelId, providerId])
+}
+
+model Benchmark {
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  description    String?
+  /// "general" | "reasoning" | "coding" | "math"
+  category       String           @default("general")
+  unit           String           @default("%")
+  higherIsBetter Boolean          @default(true)
+  scores         ModelBenchmark[]
+}
+
+model ModelBenchmark {
+  id          String    @id @default(cuid())
+  modelId     String
+  model       Model     @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  benchmarkId String
+  benchmark   Benchmark @relation(fields: [benchmarkId], references: [id], onDelete: Cascade)
+  /// Null = no verified public score. Scores are NEVER invented.
+  score       Float?
+  source      String?
+  verified    Boolean   @default(false)
+
+  @@unique([modelId, benchmarkId])
+}
