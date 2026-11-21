@@ -17,28 +17,39 @@ export default function SearchBar() {
   const [loading, setLoading] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (query.trim().length < 2) {
+      abortRef.current?.abort();
       setResults(null);
       setOpen(false);
+      setLoading(false);
       return;
     }
-    setLoading(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
+      // Cancel any in-flight search so a slow earlier response can never
+      // overwrite newer results.
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setLoading(true);
       try {
         const res = await fetch(
-          `/api/search?q=${encodeURIComponent(query.trim())}`
+          `/api/search?q=${encodeURIComponent(query.trim())}`,
+          { signal: controller.signal }
         );
         if (res.ok) {
           setResults(await res.json());
           setOpen(true);
         }
-      } catch {
-        // Search is best-effort; a failed request just shows nothing.
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") {
+          // Search is best-effort; a failed request just shows nothing.
+        }
       } finally {
-        setLoading(false);
+        if (abortRef.current === controller) setLoading(false);
       }
     }, 250);
     return () => {

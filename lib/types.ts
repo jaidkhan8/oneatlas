@@ -23,3 +23,13 @@ export type ProviderWithCount = Prisma.ProviderGetPayload<{
 export type BenchmarkScoreRow = Prisma.ModelBenchmarkGetPayload<{
   include: { model: { include: { lab: true } }; benchmark: true };
 }>;
+
+/** Model + lab with Date fields serialised to ISO strings (safe to pass to client components). */
+export type SerializedModelWithLab = Omit<
+  ModelWithLab,
+  "releaseDate" | "createdAt" | "updatedAt"
+> & {
+  releaseDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+};

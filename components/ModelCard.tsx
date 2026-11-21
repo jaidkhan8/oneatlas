@@ -1,7 +1,7 @@
 import Link from "next/link";
 import CompareButton from "./CompareButton";
 import { formatContext, formatPrice } from "@/lib/format";
-import type { ModelWithLab } from "@/lib/types";
+import type { ModelWithLab, SerializedModelWithLab } from "@/lib/types";
 
 const TYPE_LABELS: Record<string, string> = {
   chat: "Chat",
@@ -13,7 +13,11 @@ const TYPE_LABELS: Record<string, string> = {
   code: "Code",
 };
 
-export default function ModelCard({ model }: { model: ModelWithLab }) {
+export default function ModelCard({
+  model,
+}: {
+  model: ModelWithLab | SerializedModelWithLab;
+}) {
   return (
     <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow-md">
       <div className="flex items-start justify-between gap-2">
