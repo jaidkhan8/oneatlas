@@ -3,6 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 import SearchBar from "@/components/SearchBar";
 import CompareTray from "@/components/CompareTray";
+import NavLink from "@/components/NavLink";
 
 export const metadata: Metadata = {
   title: "OneAtlas — Discover, compare and evaluate AI models",
@@ -30,21 +31,11 @@ export default function RootLayout({
               OneAtlas
             </Link>
             <nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex">
-              <Link href="/models" className="hover:text-slate-900">
-                Models
-              </Link>
-              <Link href="/rankings" className="hover:text-slate-900">
-                Rankings
-              </Link>
-              <Link href="/compare" className="hover:text-slate-900">
-                Compare
-              </Link>
-              <Link href="/labs" className="hover:text-slate-900">
-                Labs
-              </Link>
-              <Link href="/providers" className="hover:text-slate-900">
-                Providers
-              </Link>
+              <NavLink href="/models">Models</NavLink>
+              <NavLink href="/rankings">Rankings</NavLink>
+              <NavLink href="/compare">Compare</NavLink>
+              <NavLink href="/labs">Labs</NavLink>
+              <NavLink href="/providers">Providers</NavLink>
             </nav>
             <div className="ml-auto w-full max-w-[220px] sm:max-w-sm">
               <SearchBar />
